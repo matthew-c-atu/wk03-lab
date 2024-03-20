@@ -1,0 +1,55 @@
+name: CI + CD demo pipeline 
+
+on:
+  push:
+    branches: [main]
+    pull_request:
+      branches: [main]
+    workflow_dispatch:
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Code_scanning
+        run: echo Imagine we are linting and scanning our code here
+      - name: Compile
+        run: echo Imagine we are compiling our code here
+      - name: Test
+        run: echo Imagine we are testing our code here
+      - name: ChecksComplete
+        run: echo Checks complete code built successfully
+
+  DeployDev:
+    name: Deploy to Development
+    if: github.event_name == 'pull_request'
+    needs: [Build]
+    runs-on: ubuntu-latest
+    environment:
+      name: Development
+      url: 'http://dev.myapp.com'
+    steps:
+      - name: Deploy 
+        run: echo YOur Code is being deployed to http://dev.myapp.com 
+    DeployStaging:
+      name: Deploy to Staging
+      if: github.event.ref == 'refs/head/main'
+      needs: [Build]
+      runs-on: ubuntu-latest
+      environment: 
+        name: Staging
+        url: 'http://test.myapp.com'
+      steps:
+      - name: Deploy 
+        run: echo I am deploying to staging http://test.myapp.com 
+
+  DeployProduction:
+    name: Deploy to Production
+    needs: [DeployStaging]
+    runs-on: ubuntu-latest
+    environment:
+      name: Production
+      url: 'http://www.myapp.com'
+    steps:
+      - name: Deploy
+        run: echo I am deploying to production
